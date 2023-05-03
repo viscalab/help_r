@@ -1,0 +1,83 @@
+---
+title: "Read MATLAB file"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(R.matlab)
+
+dat <- readMat("ME_phase2_excludqnadata_all.mat") 
+
+df <- dat$allqna |> 
+  as_tibble() |> 
+  pivot_longer(cols = everything()) |> 
+  unnest(value) |> 
+  unnest_wider(value) 
+
+df
+```
+
+```{r}
+iq <- df |> 
+    select(name, iq) |> 
+    unnest_wider(iq) |> 
+    select(name, score) |> 
+    rename(iq = score)
+
+leb <- df |> 
+    select(name, leb) |> 
+    unnest_wider(leb) |> 
+    select(name, score) |> 
+    rename(leb = score)
+
+all <- iq |> 
+  left_join(leb)
+
+all
+```
+
+or width a function
+
+```{r}
+create_tibble <- function(.dat, .variable) {
+  .dat |> 
+    select(name, {{.variable}}) |> 
+    unnest_wider({{.variable}}) |> 
+    select(name, score) |> 
+    rename({{.variable}} := score)
+}
+
+iq <- create_tibble(df, iq)
+
+leb <- create_tibble(df, leb)
+
+all <- iq |> 
+  left_join(leb)
+
+all
+```
+
+```{r}
+df_iq <- df |> 
+  select(name, iq) |> 
+  unnest_wider(iq) 
+
+df_iq
+```
+
+
+```{r}
+subject <- xx |> 
+  select(name, subjlabel) |> 
+  head(1) |> 
+  mutate(s = list(unlist(subjlabel))) |> 
+  unnest(s) |> 
+  select(-subjlabel) |> 
+ # group_by(name) |> 
+  pivot_wider(cols = s, names_from = name, values_from = s)
+
+subject
+```
+

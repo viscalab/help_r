@@ -33,7 +33,7 @@ leb <- df |>
     rename(leb = score)
 
 all <- iq |> 
-  left_join(leb)
+  left_join(leb, by = join_by(name))
 
 all
 ```
@@ -54,7 +54,7 @@ iq <- create_tibble(df, iq)
 leb <- create_tibble(df, leb)
 
 all <- iq |> 
-  left_join(leb)
+  left_join(leb, by = join_by(name))
 
 all
 ```

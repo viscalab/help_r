@@ -59,25 +59,5 @@ all <- iq |>
 all
 ```
 
-```{r}
-df_iq <- df |> 
-  select(name, iq) |> 
-  unnest_wider(iq) 
 
-df_iq
-```
-
-
-```{r}
-subject <- xx |> 
-  select(name, subjlabel) |> 
-  head(1) |> 
-  mutate(s = list(unlist(subjlabel))) |> 
-  unnest(s) |> 
-  select(-subjlabel) |> 
- # group_by(name) |> 
-  pivot_wider(cols = s, names_from = name, values_from = s)
-
-subject
-```
 

@@ -1,0 +1,26 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+The function reads all the files in the folder "data" and then creates a big
+data frame. 
+
+The file names should have the same lenght. 
+
+This function uses characters from the file name to create columns. For ex, 
+in this case uses the first character to create a condition column and the next
+2 characters to create a participant column. 
+
+```{r}
+library(tidyverse)
+library(rlang)
+
+source("read_files.R")
+
+dat <- read_files("data/", cond = 1, participant = 2)
+
+dat |> view()
+```
+

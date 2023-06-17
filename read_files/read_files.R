@@ -3,7 +3,6 @@ read_files <- function(path, extension = "csv", ...) {
   dots_t <- list2(...) |> 
     as_tibble()
   
-  
   if (extension == "csv") {
     extension <- "*.csv"
     fun <- read_csv

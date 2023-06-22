@@ -1,0 +1,72 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+
+`reframe` facilitates the application of a function to each group of a data frame. Let's use as an example the fitting of a linear model
+
+
+```{r}
+library(tidyverse)
+library(broom)
+```
+
+## Fitting a linear model to one group of data
+
+Let's select the cars with 4 cylinders from mtcars
+
+```{r}
+mtcars_4 <- mtcars |> 
+  filter(cyl == 4)
+```
+
+Let's fit a linear model for the fuel comsumption (miles per gallon) with horse power
+
+```{r}
+fit_lm_4 <- lm(mpg ~ hp, data = mtcars_4) |> 
+  tidy() # we use this to obtain the ouput as a data frame 
+
+fit_lm_4
+```
+
+
+We can create a function to perform this
+
+```{r}
+fit_hp_mpg <- function(.data) {
+  lm(mpg ~ hp, data = .data) |> 
+    tidy()
+}
+```
+
+```{r}
+fit_hp_mpg(mtcars_4)
+```
+
+
+## Fitting a linear model to different groups (different number of cylinders)
+
+
+```{r}
+fits <- mtcars |> 
+  group_by(cyl) |> 
+  reframe(fit = list(fit_hp_mpg(cur_data()))) # cur_data() picks the grouped data frame
+
+fits
+```
+We need to use `list` because the result of `fit_hp_mpg` is not a vector, but a data frame. 
+
+Now we have a data frame "fit" for each group of cars with the same number of cylinders. We can unpack the fits using `unnest`.
+
+```{r}
+fits <- mtcars |> 
+  group_by(cyl) |> 
+  reframe(fit = list(fit_hp_mpg(cur_data()))) |> 
+  unnest(fit)
+
+fits
+```
+
+

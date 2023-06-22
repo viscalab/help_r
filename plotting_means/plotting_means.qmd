@@ -1,0 +1,71 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(ggforce)
+
+list.files("R", full.names = TRUE) |> walk(source)
+```
+
+
+```{r}
+iris_means <- iris |> 
+  group_by(Species) |> 
+  summarise(calculate_t_ci(Sepal.Length))
+
+iris_means
+```
+
+
+```{r}
+ggplot() +
+  geom_pointrange(data = iris_means, 
+                  aes(x  = Species, 
+                      y = estimate,
+                      ymin = conf.low, 
+                      ymax = conf.high))
+```
+
+
+But it is a good practice to show all the data points:
+
+```{r}
+ggplot() +
+  geom_point(data = iris, 
+             aes(x = Species, y = Sepal.Length)) +
+  geom_pointrange(data = iris_means, 
+                  aes(x  = Species, 
+                      y = estimate,
+                      ymin = conf.low, 
+                      ymax = conf.high), color = "red")
+```
+To solve the problem of the strong overlap between the points, it is better to use some jittering
+
+```{r}
+ggplot() +
+  geom_sina(data = iris, 
+             aes(x = Species, y = Sepal.Length)) +
+  geom_pointrange(data = iris_means, 
+                  aes(x  = Species, 
+                      y = estimate,
+                      ymin = conf.low, 
+                      ymax = conf.high), color = "red")
+```
+
+Rather than use pointrange, the visualization improves using cross bars:
+
+```{r}
+ggplot() +
+  geom_sina(data = iris, 
+             aes(x = Species, y = Sepal.Length)) +
+  geom_crossbar(data = iris_means, 
+                  aes(x  = Species, 
+                      y = estimate,
+                      ymin = conf.low, 
+                      ymax = conf.high))
+```
+

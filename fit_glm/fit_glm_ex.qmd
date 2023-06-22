@@ -1,0 +1,84 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(rlang)
+library(broom)
+
+source("R/fit_glm.R")
+```
+
+## Reading the data
+
+```{r}
+dat <- read.csv("data/my_data.csv")
+```
+
+## Fit one model for all the data
+
+```{r}
+fit_all <- fit_glm(dat, resp, x)
+```
+
+
+```{r}
+ggplot() +
+  geom_point(data = fit_all$prop,
+             aes(x = x, y = prop)) +
+  geom_line(data = fit_all$psy, 
+            aes(x = x, y = prop)) +
+  geom_segment(data = fit_all$param, 
+               aes(x = bias, xend = bias, 
+                   y = 0, yend = .5))
+```
+## Fit a  model for different groups
+
+```{r}
+fit <- dat |> 
+  group_by(participant) |> 
+  reframe(fit = list(fit_glm(cur_data(), resp, x))) |> 
+  unnest_wider(fit)
+
+fit
+```
+To get the proportions
+
+```{r}
+proportions <- fit |> 
+  select(participant, prop) |> 
+  unnest(prop)
+```
+To get the parameters:
+
+```{r}
+parameters <- fit |> 
+  select(participant, param) |> 
+  unnest(param)
+```
+
+
+To get the psychometric functions 
+
+```{r}
+psy_funs <- fit |> 
+  select(participant, psy) |> 
+  unnest(psy)
+```
+
+We can use make a plots using the data frames that we obtained:
+
+```{r}
+ggplot() +
+  facet_wrap(vars(participant)) +
+  geom_point(data = proportions,
+             aes(x = x, y = prop)) +
+  geom_line(data = psy_funs, 
+            aes(x = x, y = prop)) +
+  geom_segment(data = params, 
+               aes(x = bias, xend = bias, 
+                   y = 0, yend = .5))
+```

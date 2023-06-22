@@ -17,7 +17,7 @@ read_files <- function(path, extension = "csv", ...) {
            str = str_sub(name_file, initial, final)) |> 
     select(name_file, chain, str) |> 
     pivot_wider(names_from = chain, values_from = str) |> 
-    mutate(name_file_full = paste0(path, name_file)) |> 
+    mutate(name_file_full = paste0(path, "/", name_file)) |> 
     rowwise() |>  
     mutate(file = list(fun(name_file_full, show_col_types = FALSE))) |> 
     ungroup() |> 

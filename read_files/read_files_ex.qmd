@@ -16,7 +16,8 @@ library(rlang)
 
 source("read_files.R")
 
-dat <- read_files("data/", cond = 1, participant = 2)
+dat <- read_files("data", cond = 1, participant = 2)
 
 dat
 ```
+

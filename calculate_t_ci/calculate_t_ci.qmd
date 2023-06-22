@@ -38,7 +38,7 @@ calculate_t_ci(x)
 ```{r}
 results <- mtcars |> 
   group_by(cyl) |> 
-  reframe(calculate_t_ci(mpg))
+  summarise(calculate_t_ci(mpg))
 
 results
 ```

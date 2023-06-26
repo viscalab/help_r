@@ -1,0 +1,195 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+This code reproduces some of the analysis in
+
+Keysers, C., Gazzola, V., & Wagenmakers, E. J. (2020). Using Bayes factor hypothesis testing in neuroscience to establish evidence of absence. *Nature neuroscience*, *23*(7), 788-799.
+
+```{r}
+library(tidyverse)
+library(broom)
+library(BayesFactor)
+
+list.files("R", full.names = TRUE) |> walk(source)
+```
+
+
+```{r}
+dat <- read_csv("data/Muscimol1.csv", 
+                show_col_types = FALSE)
+```
+
+## Experimental condition
+
+In the experimental condition, it is hypothesized that muscimol changes freezing
+
+```{r}
+dat_ShockObs <- dat |> 
+  select(Group, ShockObs)
+```
+
+```{r}
+m_ci_ShockObs <- dat_ShockObs |> 
+  group_by(Group) |> 
+  summarise(calculate_t_ci(ShockObs))
+```
+
+
+```{r}
+ggplot() +
+  geom_point(data = dat_ShockObs , aes(x = Group, y = ShockObs)) +
+  geom_crossbar(data = m_ci_ShockObs, 
+                aes(x = Group, 
+                    y = estimate, 
+                    ymin = conf.low, 
+                    ymax = conf.high))
+```
+
+We can perform a t-test
+
+```{r}
+t.test(ShockObs ~ Group, 
+       data = dat_ShockObs)
+```
+There is a very significant effect of muscimol. 
+
+
+Using Bayes factors
+
+```{r}
+ttestBF(formula = ShockObs ~ Group, 
+        data = dat_ShockObs)
+```
+The hypothesis that freezing changes with muscimol is 81 times more likely than the hypothesis that freezing does not change with muscimol. 
+
+
+## Control condition
+
+```{r}
+dat_CS <- dat |> 
+  select(Group, CS)
+```
+
+```{r}
+m_ci_CS <- dat_CS |> 
+  group_by(Group) |> 
+  summarise(calculate_t_ci(CS))
+```
+
+```{r}
+ggplot() +
+  geom_point(data = dat_CS , aes(x = Group, y = CS)) +
+  geom_crossbar(data = m_ci_CS, 
+                aes(x = Group, 
+                    y = estimate, 
+                    ymin = conf.low, 
+                    ymax = conf.high))
+```
+
+```{r}
+t.test(CS ~ Group, 
+       data = dat_CS)
+```
+For the control, the effect is not significant. Why? There are two possibilities:
+
+1) Muscimol does not affect freezing
+
+2) We don't have enough data. 
+
+We can use Bayes factors to differenciate between these two posssibilities. 
+
+
+```{r}
+ttestBF(formula = CS ~ Group, 
+        data = dat_CS)
+```
+The hypothesis that freezing changes with muscimol is about 0.34 times more likely than the hypothesis that freezing does not change with muscimol.
+
+This is equivalent to say that the hypothesis that freezing does not change with muscimol is 2.9 more likley that the hypothesis that freezing changes with muscimol. 
+
+The reason is the mathematical definition of bayes factor: 
+
+
+$$BF_{10} = \frac{P(\text{data} | H_1)}{P(\text{data} | H_0)} = 0.34$$
+
+So 
+
+$$BF_{01} = \frac{P(\text{data} | H_0)}{P(\text{data} | H_1)} = 1 /0.34 = 2.9$$
+
+
+
+
+A rule of thumb (see the paper) to assess the eviden in favor of each hypothesis is: 
+
+If BF_10 > 10 -> Strong support for H1
+
+If 3 < BF_10 < 10 -> Moderate support for H1
+
+If 1/3 < BF_10 < 3 -> More data in needed. There is not evidence for H0 and H1.
+
+If 1/10 < BF_10 < 1/3 -> Moderate support for H0
+
+If BF_10 < 1/10 -> Strong support for H0 
+
+
+So, for the control condition we don't have enough evidence for the support of H0 or H1. 
+
+
+
+## Directional test
+
+For performing bayes factors, when possible, directional tests are recommended
+
+t.test
+
+```{r}
+t.test(ShockObs ~ Group, 
+       alternative = "less",
+       data = dat_ShockObs)
+```
+
+Bayes factors
+
+```{r}
+ttestBF(formula = ShockObs ~ Group, 
+        nullInterval = c(-Inf, 0), # This is the way to specify the directional hypothesis
+        data = dat_ShockObs)
+```
+In the experimental condition, the hypothesis that freezing decreases with muscimol is 162 more likely than the hypothesis that muscimol does not affect freezing.
+
+d is related to the difference between means (mu1 and m2). To know the corresponde betwen the mu1 and m2 and the levels, it is possible using:
+
+```{r}
+fct_unique(dat_ShockObs$Group)
+```
+
+
+
+## Control condition
+
+t.test
+
+```{r}
+t.test(CS ~ Group, 
+       alternative = "less",
+       data = dat_CS)
+```
+
+Bayes factors
+
+```{r}
+ttestBF(formula = CS ~ Group, 
+        nullInterval = c(-Inf, 0), # This is the way to specify the directional hypothesis
+        data = dat_CS)
+```
+So BF_10 = 0.222
+
+which means that we have moderate evidence for the support of H0.
+
+
+Notice that BF_01 = 1 / 0.222 = 4.5 which means that no effect is 4.5 times more likely than the hypothesis by which muscimos reduces freezing. 
+
+

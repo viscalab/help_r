@@ -4,9 +4,7 @@ format: html
 editor: visual
 ---
 
-
 `reframe` facilitates the application of a function to each group of a data frame. Let's use as an example the fitting of a linear model
-
 
 ```{r}
 library(tidyverse)
@@ -31,7 +29,6 @@ fit_lm_4 <- lm(mpg ~ hp, data = mtcars_4) |>
 fit_lm_4
 ```
 
-
 We can create a function to perform this
 
 ```{r}
@@ -45,9 +42,7 @@ fit_hp_mpg <- function(.data) {
 fit_hp_mpg(mtcars_4)
 ```
 
-
 ## Fitting a linear model to different groups (different number of cylinders)
-
 
 ```{r}
 fits <- mtcars |> 
@@ -56,7 +51,8 @@ fits <- mtcars |>
 
 fits
 ```
-We need to use `list` because the result of `fit_hp_mpg` is not a vector, but a data frame. 
+
+We need to use `list` because the result of `fit_hp_mpg` is not a vector, but a data frame.
 
 Now we have a data frame "fit" for each group of cars with the same number of cylinders. We can unpack the fits using `unnest`.
 
@@ -68,5 +64,3 @@ fits <- mtcars |>
 
 fits
 ```
-
-

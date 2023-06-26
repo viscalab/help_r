@@ -24,7 +24,6 @@ dat <- read.csv("data/my_data.csv")
 fit_all <- fit_glm(dat, resp, x)
 ```
 
-
 ```{r}
 ggplot() +
   geom_point(data = fit_all$prop,
@@ -35,7 +34,8 @@ ggplot() +
                aes(x = bias, xend = bias, 
                    y = 0, yend = .5))
 ```
-## Fit a  model for different groups
+
+## Fit a model for different groups
 
 ```{r}
 fit <- dat |> 
@@ -45,6 +45,7 @@ fit <- dat |>
 
 fit
 ```
+
 To get the proportions
 
 ```{r}
@@ -52,6 +53,7 @@ proportions <- fit |>
   select(participant, prop) |> 
   unnest(prop)
 ```
+
 To get the parameters:
 
 ```{r}
@@ -60,8 +62,7 @@ parameters <- fit |>
   unnest(param)
 ```
 
-
-To get the psychometric functions 
+To get the psychometric functions
 
 ```{r}
 psy_funs <- fit |> 

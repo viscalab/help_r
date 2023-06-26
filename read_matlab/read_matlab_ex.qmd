@@ -8,7 +8,7 @@ editor: visual
 library(tidyverse)
 library(R.matlab)
 
-dat <- readMat("ME_phase2_excludqnadata_all.mat") 
+dat <- readMat("data/ME_phase2_excludqnadata_all.mat") 
 
 df <- dat$allqna |> 
   as_tibble() |> 
@@ -58,6 +58,3 @@ all <- iq |>
 
 all
 ```
-
-
-

@@ -168,7 +168,7 @@ fct_unique(dat_ShockObs$Group)
 
 
 
-## Control condition
+For the control:
 
 t.test
 

@@ -6,6 +6,7 @@ editor: visual
 
 ```{r}
 library(tidyverse)
+library(broom)
 library(ggforce)
 
 list.files("R", full.names = TRUE) |> walk(source)

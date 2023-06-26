@@ -6,8 +6,12 @@ editor: visual
 
 ```{r}
 library(tidyverse)
-source("calculate_proportions.R")
 
+list.files("R", full.names = TRUE) |> walk(source)
+```
+
+
+```{r}
 mtcars |> 
   group_by(cyl) |> 
   calculate_proportions(vs)

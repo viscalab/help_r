@@ -1,4 +1,3 @@
-calculate_proportions <- function(.tbl, .y) {
-  .tbl %>%
-    summarise(n = n(), k = sum({{.y}}), prob = mean({{.y}}), .groups = "keep") 
+calculate_proportions <- function(.x) {
+  tibble(n = length(.x), k = sum(.x), prob = mean(.x))
 }

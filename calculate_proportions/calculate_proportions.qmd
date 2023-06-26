@@ -11,8 +11,11 @@ list.files("R", full.names = TRUE) |> walk(source)
 ```
 
 
+
 ```{r}
 mtcars |> 
   group_by(cyl) |> 
-  calculate_proportions(vs)
+  summarise(calculate_proportions(vs))
 ```
+
+

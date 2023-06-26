@@ -9,7 +9,7 @@ library(tidyverse)
 library(rlang)
 library(broom)
 
-source("R/fit_glm.R")
+list.files("R", full.names = TRUE) |> walk(source)
 ```
 
 ## Reading the data
@@ -57,7 +57,7 @@ proportions <- fit |>
 To get the parameters:
 
 ```{r}
-parameters <- fit |> 
+params <- fit |> 
   select(participant, param) |> 
   unnest(param)
 ```

@@ -14,9 +14,12 @@ This function uses characters from the file name to create columns. For ex, in t
 library(tidyverse)
 library(rlang)
 
-source("read_files.R")
+list.files("R", full.names = TRUE) |> walk(source)
+```
 
+```{r}
 dat <- read_files("data", cond = 1, participant = 2)
 
 dat
 ```
+

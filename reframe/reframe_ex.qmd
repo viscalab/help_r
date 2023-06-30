@@ -62,7 +62,7 @@ mtcars |>
   select(-data) |> 
   unnest(fit)
 ```
-## Similar approach using `rowwise``
+## Similar approach using `rowwise`
 
 ```{r}
 mtcars |> 

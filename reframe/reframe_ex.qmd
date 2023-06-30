@@ -47,20 +47,9 @@ fit_hp_mpg(mtcars_4)
 ```{r}
 fits <- mtcars |> 
   group_by(cyl) |> 
-  reframe(fit = list(fit_hp_mpg(cur_data()))) # cur_data() picks the grouped data frame
+  reframe(fit_hp_mpg(cur_data()))
 
 fits
 ```
 
-We need to use `list` because the result of `fit_hp_mpg` is not a vector, but a data frame.
 
-Now we have a data frame "fit" for each group of cars with the same number of cylinders. We can unpack the fits using `unnest`.
-
-```{r}
-fits <- mtcars |> 
-  group_by(cyl) |> 
-  reframe(fit = list(fit_hp_mpg(cur_data()))) |> 
-  unnest(fit)
-
-fits
-```

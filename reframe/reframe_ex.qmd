@@ -52,4 +52,25 @@ fits <- mtcars |>
 fits
 ```
 
+## Similar approach using `map`
+
+```{r}
+mtcars |> 
+  group_by(cyl) |> 
+  nest() |> 
+  mutate(fit = map(data, fit_hp_mpg)) |> 
+  select(-data) |> 
+  unnest(fit)
+```
+## Similar approach using `rowwise``
+
+```{r}
+mtcars |> 
+  group_by(cyl) |> 
+  nest() |> 
+  rowwise() |> 
+  mutate(fit = list(fit_hp_mpg(data))) |> 
+  select(-data) |> 
+  unnest(fit)
+```
 

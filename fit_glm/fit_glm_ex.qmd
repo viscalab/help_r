@@ -24,6 +24,7 @@ dat <- read.csv("data/my_data.csv")
 fit_all <- fit_glm(dat, resp, x)
 ```
 
+
 ```{r}
 ggplot() +
   geom_point(data = fit_all$prop,
@@ -45,6 +46,8 @@ fit <- dat |>
 
 fit
 ```
+
+
 
 To get the proportions
 
@@ -83,3 +86,14 @@ ggplot() +
                aes(x = bias, xend = bias, 
                    y = 0, yend = .5))
 ```
+
+## Goodness of fit
+
+```{r}
+fit |> 
+  select(participant, deviance) |> 
+  unnest(deviance) |> 
+  filter(type == "residual")
+```
+
+The fit is good for the two participants

@@ -23,8 +23,6 @@ dat <- read_files("data", cond = 1, participant = 2)
 dat
 ```
 
-
-
 ```{r}
 dat <- read_files("data", 
                   extension = "txt", 
@@ -35,5 +33,3 @@ dat <- read_files("data",
 
 dat
 ```
-
-

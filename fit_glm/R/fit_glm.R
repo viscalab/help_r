@@ -30,10 +30,12 @@ fit_glm <- function(.data, .response, .predictor) {
   psy <- augment(model, newdata = sequ, type.predict = "response") |>
     rename(prop = .fitted)
   
-  deviance <- glance(model) |> 
-    select(null.deviance, df.null) |> 
-    mutate(p_value = pchisq(null.deviance, df = df.null, lower.tail = FALSE)) |>
-    rename(null_deviance = null.deviance, df_null = df.null)
+  glance_model <- glance(model) 
+  
+  deviance <- tibble(type = c("residual", "null"), 
+                     deviance = c(glance_model$deviance, glance_model$null.deviance), 
+                     df = c(glance_model$df.residual, glance_model$df.null)) |> 
+    mutate(p_value = pchisq(deviance, df = df, lower.tail = FALSE)) 
   
   list(prop = prop,
        param = param,

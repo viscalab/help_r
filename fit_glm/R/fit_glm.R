@@ -32,6 +32,10 @@ fit_glm <- function(.data, .response, .predictor) {
   
   glance_model <- glance(model) 
   
+  log_lik <- logLik(model)[1]
+  
+  n_par <- nrow(tidy(model))
+  
   deviance <- tibble(type = c("residual", "null"), 
                      deviance = c(glance_model$deviance, glance_model$null.deviance), 
                      df = c(glance_model$df.residual, glance_model$df.null)) |> 
@@ -40,5 +44,7 @@ fit_glm <- function(.data, .response, .predictor) {
   list(prop = prop,
        param = param,
        psy = psy, 
+       log_lik = log_lik, 
+       n_par = n_par,
        deviance = deviance)
 }

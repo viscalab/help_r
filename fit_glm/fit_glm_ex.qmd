@@ -18,12 +18,13 @@ list.files("R", full.names = TRUE) |> walk(source)
 dat <- read.csv("data/my_data.csv")
 ```
 
+
+
 ## Fit one model for all the data
 
 ```{r}
 fit_all <- fit_glm(dat, resp, x)
 ```
-
 
 ```{r}
 ggplot() +
@@ -46,8 +47,6 @@ fit <- dat |>
 
 fit
 ```
-
-
 
 To get the proportions
 

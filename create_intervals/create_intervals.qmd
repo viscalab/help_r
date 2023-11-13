@@ -1,0 +1,33 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+
+```{r}
+library(tidyverse)
+
+d <- tibble(x = runif(1000), y = rnorm(1000)) |> 
+  mutate(x_int = cut_interval(x, n = 5))  |> 
+  group_by(x_int) |> 
+  mutate(x_cent = mean(x))
+  
+```
+
+If you want to use the interval as a factor
+
+```{r}
+d |> 
+  ggplot(aes(x_int, y)) +
+  geom_point()
+```
+
+If you want to use the center of the interval 
+
+```{r}
+d |> 
+  ggplot(aes(x_cent, y)) +
+  geom_point()
+```
+

@@ -1,0 +1,322 @@
+---
+title: "DT_tutorial"
+author: "Joan"
+date: "5/28/2022"
+format: html
+editor: source
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading data.table and other packages
+
+```{r}
+#| label: loading
+
+pkgs <- c('ggplot2','data.table','magrittr','bench')
+if(isFALSE(lapply(pkgs, require, character.only = T))) 
+  stop("One package missing")
+
+
+```
+
+## Creating a large data.set
+
+
+```{r }
+#| label: create_DT
+
+
+vel <- c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5)
+nobj <- 20 
+reps <- 1000
+frames <- 90 #frames/per second
+
+
+mydt <- CJ(r=1:reps,vel=c(1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5),nobj=1:nobj) 
+mydt[,vrd:=rnorm(.N,0,sd=0.2)+vel,by=.(nobj,vel,r)]
+setkey(mydt,r)
+dt2 <- data.table(r=rep(seq(1,reps),each=frames*5),t=rep(seq(0,5,len=frames*5),reps))
+setkey(dt2,r)
+mydt <- mydt[dt2,allow.cartesian=TRUE]
+
+dim(mydt)
+
+```
+
+## Adding variables
+
+Data table DT[i,j] i refers to rows and j to columns
+
+To add variables (columns) we operate on 'j', so the equivalent to dplyr::mutate 
+would be:
+
+```{r}
+#| label: add_variable
+
+mydt[,pos:=vrd*t]
+mydt[,ttc:=3/vel]
+
+```
+
+or alternatively 
+
+```{r}
+#| label: add_several_cols 
+#| eval: false
+#| include: false
+
+
+mydt[,":="(pos=vrd*t,ttc=3/vel)]
+
+```
+
+## Selecting variables
+
+```{r as_DT}
+#| label: select variables
+
+
+mydt[,.(t,pos)] # as a DT
+
+
+```
+
+Or to return a vector not a DT
+
+```{r} 
+#| label: select variable as a vector
+
+
+unique(mydt[, vel] ) # unique values
+
+```
+
+## Deleting variables
+
+```{r}
+#| label: delete a variable/column
+
+mydt[, ttc:=NULL] #  
+
+# or several variables
+#mydt[, c("var1", "var2") := NULL] 
+ 
+```
+
+
+## Summaries by groups
+
+My first summary in DT
+
+```{r}
+#| label: summary
+
+mydt[,.(pos=mean(pos)),keyby=.(nobj,vel,t)] # keyby as arrange
+
+```
+
+## Shift for lag lead
+
+```{r}
+#| label: shift positions
+
+
+mydt[ , pos_minus_1 := shift(pos, 1, type="lag"),by=r] # note the grouping by r
+
+```
+
+## set functions
+
+When using `set` function you need not to assign the result to a variable because DT changes the values or names by references
+
+
+```{r}
+#| label: set_for_values
+
+
+dt2 <- mydt[t>0.4 & t<0.5,.(pos=mean(pos)),keyby=.(nobj,vel)] # ordered keyby
+
+set(dt2,1L,3L,NA) # note the use of L(to cast to integer)
+dt2
+# back to previous number 0.4485829
+cols <- 3L
+set(dt2,1L,cols,0.4485829) # note the use of L(to cast to integer)
+dt2
+
+```
+
+We can also use lists to change values:
+`rows <- list(1:2) ` and `cols <- list(2:4)` and do: `set(DT,rows,cols)`
+
+But never do: `dt1 <- set(DT,rows,cols)` because DT has already been modified.
+
+
+## Chaining
+
+The chaining in DT is done with [...][...], adding as many [...] as you need
+
+```{r}
+#| label: standard way
+
+ mydt[t>0.4 & t<0.9,][,.(pos=mean(pos)), keyby=.(nobj,vel)][,.(delta_pos=last(pos)-first(pos)), by=vel]
+
+```
+
+Using magrittr package: with pipes. Note you do not need assigning
+
+```{r}
+#| label: with pipes
+
+mydt %>% 
+  .[,.(pos=mean(pos)), keyby=.(nobj,vel)] %>%  # comment
+  .[,.(delta_pos=last(pos)-first(pos)), by=vel] # comment
+
+```
+
+Another way to break lines is to give a return between "[" and "]", not between "]" and "["
+
+```{r}
+#|label: yet_another_method
+
+  mydt[,.(pos=mean(pos)), 
+    keyby=.(nobj,vel)  # comment
+  ][,.(delta_pos=last(pos)-first(pos)), 
+    by=vel] # comment
+
+
+```
+
+Finally, between "]" and "[" with a little trick, just by using parenthesis
+
+```{r}
+#|label: yet_another_method2
+
+  (
+  mydt[,.(pos=mean(pos)), keyby=.(nobj,vel)] #comment
+  [,.(delta_pos=last(pos)-first(pos)), by=vel] # comment
+  )
+
+```
+
+
+## Reserved names: .N, .SD, and .SDcols
+
+.N denotes the number of elements (rows) of a DT or groups within a DT
+
+```{r .N}
+
+mydt[, .N, by=vel]
+
+```
+
+It would be equivalent to n() in dplyr. We can also use expression like `.N-1` etc.
+
+
+
+```{r .N_1}
+
+mydt[.N-1] # penultimate row of the DT
+
+```
+
+
+.SD is very useful since it contains the whole DT
+
+```{r .SD}
+
+mydt[,.SD] # is the same as print(mydt)
+
+```
+
+
+```{r .SD_2}
+
+mydt[,.SD[c(1,.N)],by=vel] # select first and last row for each vel
+
+```
+
+
+## Filter and grouped filters
+
+```{r trim_function}
+keep <- function(x,cut=3,repl=NA)
+{
+  res <- rep(TRUE,length(x))
+  y <- scale(x) 
+  res[abs(y>cut)] <- FALSE
+  res
+}
+```
+
+```{r filter}
+  mydt[,hist(vrd-vel)]
+
+  mydt[keep(vrd-vel),hist(vrd-vel)]
+```
+
+```{r grouped_filter}
+
+
+bench_time(mydt[,.SD[keep(vrd-vel),],by=vel]) # filter by group
+
+bench_time(mydt[,keep:=keep(vrd-vel),by=vel]) # filter by group
+
+# irisdt[, keep := 
+#   as.logical(do.call(pmin, lapply(.SD, function(x) abs(scale(x)) <= 2)))
+# , .SDcols = myCols]
+# res = irisdt[(keep), !"keep"]
+
+
+```
+
+
+## Plotting 
+
+You plot a DT as always
+
+```{r plot}
+
+ggplot(mydt[r<10 & t<ttc & nobj==2,],aes(t,pos,col=factor(vel)))+geom_point()
+
+#or
+
+mydt[r<10 & t<ttc & nobj==2, ggplot(.SD,aes(t,pos,col=factor(vel)))+geom_point()]
+
+```
+
+## Models: purrr::map equivalent
+
+```{r}
+  
+  fits <- mydt[,.(fit=list(lm(pos~t))),by=vel]
+  fits[,lapply(fit,coef),by=vel]
+  lapply(fits$fit, coef)
+  
+```
+
+```{r}
+
+dt1 <- data.table(x=rep(1:10,2),y=runif(20),g=rep(c("a","b"),each=10))
+dt1[,coef(lm(x~y)),by=g] # works
+# like nest(), map
+foo <- function(d)
+{
+   m <- lm(y~x,data=d) 
+   data.table(model=list(m)) # should be list(m)
+}
+
+fits <- dt1[,(foo(.SD)),by=g]
+fits[,lapply(model,coef),by=g]
+
+```
+
+
+## Indexing and keys
+
+```{r}
+
+```
+

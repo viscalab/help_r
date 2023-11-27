@@ -1,0 +1,88 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+## One single fit
+
+```{r}
+dat <- tibble(x = seq(0, 1, .1)) |> 
+  rowwise() |> 
+  mutate(y = rnorm(1, mean = 3 * x, sd = 2))
+
+ggplot() +
+  geom_point(data = dat, aes(x = x, y = y)) +
+  geom_line(data = fit_linear$pred, aes(x = x, y = y))
+    
+```
+
+
+```{r}
+linear_fun <- function(x, p) {
+  p[1] + p[2] * x
+}
+
+
+fit <- fit_ls(dat, y, x, linear_fun, c(0, 1))
+
+fit$param
+```
+
+```{r}
+ggplot() +
+  geom_point(data = dat, aes(x = x, y = y)) +
+  geom_line(data = fit$pred, aes(x = x, y = y))
+```
+
+## Multiple groups 
+
+```{r}
+dat_groups <- tibble(x = seq(0, 1, .1)) |> 
+  rowwise() |> 
+  mutate(y = rnorm(1, mean = 3 * x, sd = 2)) |> 
+  mutate(group = "a") |> 
+  bind_rows(
+    tibble(x = seq(0, 1, .1)) |> 
+  rowwise() |> 
+  mutate(y = rnorm(1, mean = 5 * x, sd = 1)) |> 
+  mutate(group = "b") 
+  )
+```
+
+```{r}
+fit_groups <- dat_groups |> 
+  group_by(group) |> 
+  reframe(fit = list(fit_ls(cur_data(), y, x, linear_fun, c(0, 1)))) |> 
+  unnest_wider(fit)
+```
+
+
+```{r}
+params <- fit_groups |> 
+  select(group, param) |> 
+  unnest(param)
+
+params
+```
+
+To get the psychometric functions
+
+```{r}
+pred_groups <- fit_groups |> 
+  select(group, pred) |> 
+  unnest(pred)
+```
+
+```{r}
+ggplot() +
+  facet_wrap(vars(group)) +
+  geom_point(data = dat_groups, aes(x = x, y = y)) +
+  geom_line(data = pred_groups, aes(x = x, y = y))
+```
+

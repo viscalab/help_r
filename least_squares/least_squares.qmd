@@ -42,6 +42,8 @@ ggplot() +
 
 ## Multiple groups 
 
+## Creating some fake data
+
 ```{r}
 dat_groups <- tibble(x = seq(0, 1, .1)) |> 
   rowwise() |> 
@@ -54,6 +56,9 @@ dat_groups <- tibble(x = seq(0, 1, .1)) |>
   mutate(group = "b") 
   )
 ```
+
+
+## Fit
 
 ```{r}
 fit_groups <- dat_groups |> 

@@ -8,7 +8,6 @@ editor: visual
 library(tidyverse)
 ```
 
-
 ## One single fit
 
 ```{r}
@@ -22,14 +21,13 @@ ggplot() +
     
 ```
 
-
 ```{r}
 linear_fun <- function(x, p) {
   p[1] + p[2] * x
 }
 
 
-fit <- fit_ls(dat, y, x, linear_fun, c(0, 1))
+fit <- fit_ls(dat$x, dat$y, linear_fun, c(0, 1))
 
 fit$param
 ```
@@ -40,9 +38,20 @@ ggplot() +
   geom_line(data = fit$pred, aes(x = x, y = y))
 ```
 
-## Multiple groups 
+## Multiple groups
 
 ## Creating some fake data
+
+```{r}
+
+x <- dat$x
+
+y <- dat$y
+
+
+```
+
+
 
 ```{r}
 dat_groups <- tibble(x = seq(0, 1, .1)) |> 
@@ -57,16 +66,14 @@ dat_groups <- tibble(x = seq(0, 1, .1)) |>
   )
 ```
 
-
 ## Fit
 
 ```{r}
 fit_groups <- dat_groups |> 
   group_by(group) |> 
-  reframe(fit = list(fit_ls(cur_data(), y, x, linear_fun, c(0, 1)))) |> 
+  reframe(fit = list(fit_ls(x, y, linear_fun, c(0, 1)))) |> 
   unnest_wider(fit)
 ```
-
 
 ```{r}
 params <- fit_groups |> 
@@ -76,7 +83,7 @@ params <- fit_groups |>
 params
 ```
 
-To get the psychometric functions
+To get the fits 
 
 ```{r}
 pred_groups <- fit_groups |> 
@@ -90,4 +97,3 @@ ggplot() +
   geom_point(data = dat_groups, aes(x = x, y = y)) +
   geom_line(data = pred_groups, aes(x = x, y = y))
 ```
-

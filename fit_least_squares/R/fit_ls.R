@@ -1,9 +1,4 @@
-fit_ls <- function(.data, .response, .predictor, .fun, .par_ini) {
-  x <- .data |> 
-    select({{.predictor}})
-  
-  y <- .data |> 
-    select({{.response}})
+fit_ls <- function(.predictor, .response, .fun, .par_ini) {
   
   create_ls <- function(x, y, fun) {
     function(p) {
@@ -12,25 +7,15 @@ fit_ls <- function(.data, .response, .predictor, .fun, .par_ini) {
     }
   }
   
-  ls <- create_ls(x, y, linear_fun)
+  ls <- create_ls(.predictor, .response, linear_fun)
   
   fit <- optim(.par_ini, ls)
   
   param <- tibble(p = fit$par) |> 
     rowid_to_column(var = "p_n")
   
-  min_max <- .data |>
-    ungroup() |> 
-    distinct({{.predictor}}) |>
-    summarise(min = min({{ .predictor }}),
-              max = max({{ .predictor }}))
-  
-  sequ <- tibble({{.predictor}} := seq(min_max$min,
-                                       min_max$max,
-                                       length.out = 100))
-  
-  pred <- sequ |> 
-    mutate({{.response}} := .fun(!!ensym(.predictor), param$p))
+  pred <- tibble(x = seq(min(.predictor), max(.predictor), length = 100)) |> 
+    mutate(y = .fun(x, param$p))
   
   list(param = param, 
        pred = pred)

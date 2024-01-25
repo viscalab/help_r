@@ -3,11 +3,11 @@ fit_ls <- function(.predictor, .response, .fun, .par_ini) {
   create_ls <- function(x, y, fun) {
     function(p) {
       y_hat <- fun(x, p)
-      sum((y - y_hat)^2)
+      sum((y - y_hat) ^ 2)
     }
   }
   
-  ls <- create_ls(.predictor, .response, linear_fun)
+  ls <- create_ls(.predictor, .response, .fun)
   
   fit <- optim(.par_ini, ls)
   

@@ -11,25 +11,126 @@ library(tidyverse)
 ## One single fit
 
 ```{r}
-dat <- tibble(x = seq(0, 1, .1)) |> 
+dat <- tibble(x = seq(0, 1, .05)) |> 
   rowwise() |> 
-  mutate(y = rnorm(1, mean = 3 * x, sd = 2))
+  mutate(y = rnorm(1, mean = 3 * x, sd = 1))
+
+ggplot() +
+  geom_point(data = dat, aes(x = x, y = y))
+```
+
+I would like to fit a line described by parameter p1 and p2. To do that I create a least square function that given some data points and some line specified by p1 and p2, creates a sum of the distances of the points to the line (square to make everything positive).
+
+```{r}
+least_square_fun <- function(.par) {
+  y_hat <- .par[1] + .par[2] * dat$x 
+  
+  differences <- dat$y - y_hat 
+  
+  sum(differences^2)
+  
+}
+```
+
+where y hat is the value of y on the line for a given x.
+
+
+I can compute the value of this function for different parameters. For example for a line with intercept 1 and slope 3:
+
+```{r}
+least_square_fun( c(1, 3))
+```
+
+For a line with intercept 0 and slope 4:
+
+```{r}
+least_square_fun( c(0, 4))
+```
+
+This last line is a better fit because the sum of least squares is better. Instead of trying by hand many parameters, we search for the parameters that minimize this function using the R function for optimization `optim`. It requires some initial parameters, let´s use the last ones that we tried, for example 
+
+```{r}
+fit <- optim(c(0, 4), least_square_fun)
+
+fit
+```
+
+We can plot the fit now
+
+```{r}
+line <- tibble(x = seq(0, 1, .001)) |> 
+  mutate(y = fit$par[1] + fit$par[2] * x)
 
 ggplot() +
   geom_point(data = dat, aes(x = x, y = y)) +
-  geom_line(data = fit_linear$pred, aes(x = x, y = y))
-    
+  geom_line(data = line, aes(x = x, y = y))
 ```
+
+### This is ugly
+
+The problem is that it is not good coding creating a function that uses variables that are not an input to the function. That is, the function `least_square_fun` is using dat$x and dat$y. An elegant solution is to use function factories. A function factories is a function that given some inputs does not return a number, but instead in return another function that depends on other parameters. Let's do it. 
+
+```{r}
+create_ls <- function(.predictor, .response){
+  function(.par) { #it returns a function that depend on .par
+    y_hat <- .par[1] + .par[2] * .predictor 
+    differences <- .response - y_hat 
+    sum(differences^2)
+  }
+}
+```
+
+
+The function `create_ls` creates functions given some data. Let's create a function that uses the data from our experiment
+
+```{r}
+least_square_fun_for_my_exp <- create_ls(dat$x, dat$y)
+```
+
+The function `least_square_fun_for_my_exp` only depends on parameters. Let's compute its value for the values 0 and 4
+
+```{r}
+least_square_fun_for_my_exp(c(0, 4))
+```
+
+We can optimize now
+
+```{r}
+optim(c(0, 4), least_square_fun_for_my_exp)
+```
+
+So basically `least_square_fun_for_my_exp` is the same that our previous `least_square_fun` but now instead of using dat$x and dat$y inside the function we have a function factory function `create_ls` that introduce the data in a more elegant way. Given some other experiment, we can use `create_ls` to create our custome `least_square_fun` 
+
+Now, we can be even more elegant by using an argument that takes into account the function that we want to fit
+
+```{r}
+create_ls <- function(.predictor, .response, .fun){
+  function(.par) { 
+    y_hat <- .fun(.predictor, .par)
+    differences <- .response - y_hat 
+    sum(differences^2)
+  }
+}
+```
+
+
+Let's use it for example to fit a linear model:
 
 ```{r}
 linear_fun <- function(x, p) {
   p[1] + p[2] * x
 }
 
+least_square_fun <- create_ls(dat$x, dat$y, linear_fun)
 
-fit <- fit_ls(dat$x, dat$y, linear_fun, c(0, 1))
+optim(c(0, 4), least_square_fun)
+```
+The function `fit_ls` inside the folder R is an extension that also includes some initial parameters.
 
-fit$param
+```{r}
+fit <- fit_ls(dat$x, dat$y, linear_fun, c(0, 4))
+
+fit
 ```
 
 ```{r}
@@ -42,16 +143,6 @@ ggplot() +
 
 ## Creating some fake data
 
-```{r}
-
-x <- dat$x
-
-y <- dat$y
-
-
-```
-
-
 
 ```{r}
 dat_groups <- tibble(x = seq(0, 1, .1)) |> 
@@ -60,9 +151,9 @@ dat_groups <- tibble(x = seq(0, 1, .1)) |>
   mutate(group = "a") |> 
   bind_rows(
     tibble(x = seq(0, 1, .1)) |> 
-  rowwise() |> 
-  mutate(y = rnorm(1, mean = 5 * x, sd = 1)) |> 
-  mutate(group = "b") 
+      rowwise() |> 
+      mutate(y = rnorm(1, mean = 5 * x, sd = 1)) |> 
+      mutate(group = "b") 
   )
 ```
 

@@ -42,6 +42,5 @@ results <- mtcars |>
   group_by(cyl) |> 
   summarise(calculate_t_ci(mpg))
 
-
 results
 ```

@@ -1,0 +1,21 @@
+---
+title: "Untitled"
+format: revealjs
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(rlang)
+
+source("R/bind_dfs.R")
+
+df_1 <- tibble(x = c("a", "b"), y = c(1, 2))
+
+df_2 <- tibble(x = c("c", "d"), y = c(6, 9))
+
+bind_dfs(
+  list(df_1, df_2), model = c("1", "2")
+)
+```
+

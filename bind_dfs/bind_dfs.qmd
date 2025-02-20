@@ -15,7 +15,7 @@ df_1 <- tibble(x = c("a", "b"), y = c(1, 2))
 df_2 <- tibble(x = c("c", "d"), y = c(6, 9))
 
 bind_dfs(
-  list(df_1, df_2), model = c("1", "2")
+  list(df_1, df_2), model = c("11", "12")
 )
 ```
 

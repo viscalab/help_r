@@ -14,8 +14,11 @@ df_1 <- tibble(x = c("a", "b"), y = c(1, 2))
 
 df_2 <- tibble(x = c("c", "d"), y = c(6, 9))
 
+df_3 <- tibble(x = c("e", "f"), y = c(4, 4))
+
+
 bind_dfs(
-  list(df_1, df_2), model = c("11", "12")
+  list(df_1, df_2, df_3), model = c("11", "12", "13")
 )
 ```
 

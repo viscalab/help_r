@@ -1,0 +1,22 @@
+
+```{r}
+library(tidyverse)
+library(broom)
+
+source("R/calculate_cor.R")
+source("R/analyze_cor.R")
+
+calculate_cor(mtcars$mpg, mtcars$hp)
+```
+
+```{r}
+cor_mtcars <- mtcars |> 
+  analyze_cor(mpg, hp) 
+
+cor_mtcars$cor
+```
+
+```{r}
+cor_mtcars$p
+```
+
